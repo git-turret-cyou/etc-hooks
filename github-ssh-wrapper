@@ -1,0 +1,11 @@
+#!/bin/sh
+# also ripped from gentoo's githooks (they're simply awesome)
+
+# Use via GIT_SSH
+# OBSOLETE!!! Github is terrible and requires old ciphers/kex/macs
+#CIPHERS='-o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr,aes256-cbc,aes192-cbc,aes128-cbc'
+#KEX='-o KexAlgorithms=curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1'
+#MACS='-o MACs=hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-ripemd160-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,hmac-ripemd160,hmac-sha1'
+
+# Now run it
+exec ssh ${GIT_SSH_KEY:+-i} ${GIT_SSH_KEY} $CIPHERS $KEX $MACS "$@"

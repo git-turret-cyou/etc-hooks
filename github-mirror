@@ -1,0 +1,24 @@
+#!/bin/sh
+# based on https://cgit.gentoo.org/infra/githooks.git/plain/github-mirror/github-mirror
+
+# simple gitolite mirroring
+
+# flush STDIN coming from git, because gitolite's own post-receive.mirrorpush
+# script does the same thing
+[ -t 0 ] || cat >/dev/null
+
+if [ -z "${GL_REPO}" ]; then
+	echo "GL_REPO not set" >&2
+	exit 1
+fi
+
+targets=$(git config --get mirror.url)
+[ -z "${targets}" ] && exit 0
+
+[ -z "${GIT_SSH_KEY}" ] && export GIT_SSH_KEY=$(git config --get mirror.pubkey)
+export GIT_SSH=$(dirname "$(readlink -f "$0")")/github-ssh-wrapper
+
+for target in ${targets}; do
+	# --force because someone may accidentally push into the mirror
+	git push --mirror --force ${target}
+done
