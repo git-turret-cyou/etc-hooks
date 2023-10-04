@@ -1,0 +1,44 @@
+#!/bin/sh
+# this one i made myself
+# website.dir - directory to output to
+# website.standalone - used to inform pandoc that we are standalone mode
+#           (used with template.html in project /)
+# .wbignore follows grep syntax
+# you can see www/www.turret.cyou for an example project structure
+
+[ -t 0 ] || cat >/dev/null
+
+if [ -z "${GL_REPO}" ]; then
+        echo "GL_REPO not set" >&2
+        exit 1
+fi
+
+target=$(git config --get website.dir)
+[ -z "${target}" ] && exit 0
+
+TMPDIR=$(mktemp -d)
+chmod 755 "${TMPDIR}"
+
+cp . "${TMPDIR}/.git" -R
+
+cd "${TMPDIR}"
+unset GIT_DIR
+unset GIT_WORK_TREE
+git config --unset core.bare
+git checkout master -f
+echo "WEBSITEBUILDER: generating html files"
+files=$(find * -type f || exit 1)
+[ -f .wbignore ] && files=$(echo -n "${files}" | grep -vf .wbignore)
+for file in ${files}; do
+	outputfile="$(echo -n $file | rev | cut -d '.' -f2- | rev).html"
+    pandoc "${file}" $([ $(git config --get website.standalone || echo -n 0) -gt 0 ] &&  echo -n "--standalone $([ -f template.html ] && echo -n "--template template.html")") --ascii -o "${outputfile}"
+	rm "${file}"
+done
+
+echo "WEBSITEBUILDER: deploying"
+rm -Rf "${target}" || (echo "WEBSITEBUILDER: couldnt remove old website" && exit 1)
+rm -Rf "${TMPDIR}/.git"
+mv "${TMPDIR}" "${target}" || (echo "WEBSITEBUILDER: couldnt update website" && exit 1)
+chmod -R a+rX "${target}"
+
+cd
