@@ -102,6 +102,14 @@ while read -r r; do
 			echo "*** Signature cannot be checked on ${r}, refusing"
 			exit 1
 			;;
+        Y)
+            echo "*** Signing key expired on ${r}, refusing"
+            exit 1
+            ;;
+        R)
+            echo "*** Signing key revoked on ${r}, refusing"
+            exit 1
+            ;;
 		*)
 			echo "*** Unknown signature status '${signst}', refusing"
 			exit 1
